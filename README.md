@@ -164,9 +164,10 @@ Open `benchmark_browser.html` in a web browser to run the JavaScript benchmark i
 1. **Algorithm Consistency**: All languages use identical algorithm logic
 2. **Data Consistency**: Same input data sizes and random seeds (42)
 3. **Compilation Optimization**: Compiled languages use highest optimization level (-O3 or --release)
-4. **Standard Library Only**: No external libraries or dependencies
-5. **No Regex**: Removed regex tests to avoid external dependencies
-6. **Time Measurement**: Only measure core computation time, exclude startup/initialization
+4. **JIT Warmup**: JIT languages (C#, Java) include warmup iterations to reach steady-state performance
+5. **Standard Library Only**: No external libraries or dependencies
+6. **No Regex**: Removed regex tests to avoid external dependencies
+7. **Time Measurement**: Only measure core computation time, exclude startup/initialization
 
 ## 📁 Project Structure
 
@@ -239,6 +240,17 @@ This is **normal and expected** - it doesn't affect the fairness of performance 
 ### Windows Console UTF-8
 
 C and C++ versions include Windows-specific code to set console output to UTF-8 for proper Chinese character display.
+
+### JIT Warmup for C# and Java
+
+C# (.NET) and Java are JIT (Just-In-Time) compiled languages. To ensure fair performance measurement:
+
+- **Warmup iterations**: Both C# and Java run 3 warmup iterations before actual testing
+- **Why**: JIT compilers optimize code during runtime; warmup ensures we measure steady-state performance
+- **Fairness**: This represents real-world scenarios where code runs multiple times
+- **Impact**: Without warmup, JIT languages would show artificially slow results
+
+Compiled languages (C, C++, Rust, Go, etc.) don't need warmup as they're already optimized at compile time.
 
 ## 🔍 Verification
 

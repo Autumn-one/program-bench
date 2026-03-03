@@ -321,6 +321,14 @@ class Benchmark
         Console.WriteLine("======================================================================");
         Console.WriteLine();
 
+        // JIT预热：让.NET运行时优化关键代码路径
+        // 这对JIT语言是公平的，因为生产环境中代码会运行多次
+        for (int i = 0; i < 3; i++)
+        {
+            FibRecursive(20);
+            Test2FibonacciIterative();
+        }
+
         Console.WriteLine($"{"测试项目",-20} {"结果",-15} {"耗时(ms)",15}");
         Console.WriteLine("----------------------------------------------------------------------");
 
