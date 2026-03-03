@@ -130,21 +130,30 @@ int test7_file_io() {
     const char *filename = "test_file_c.txt";
     int line_count = 2000000;
     
-    // 写入
+    // 写入 - 使用更大的缓冲区
     FILE *f = fopen(filename, "w");
+    // 设置更大的缓冲区 (1MB)
+    char *write_buffer = (char*)malloc(1024 * 1024);
+    setvbuf(f, write_buffer, _IOFBF, 1024 * 1024);
+    
     for (int i = 0; i < line_count; i++) {
         fprintf(f, "Line %d: This is a test line.\n", i);
     }
     fclose(f);
+    free(write_buffer);
     
-    // 读取
+    // 读取 - 使用更大的缓冲区
     f = fopen(filename, "r");
+    char *read_buffer = (char*)malloc(1024 * 1024);
+    setvbuf(f, read_buffer, _IOFBF, 1024 * 1024);
+    
     int count = 0;
-    char buffer[256];
-    while (fgets(buffer, sizeof(buffer), f) != NULL) {
+    char line_buffer[256];
+    while (fgets(line_buffer, sizeof(line_buffer), f) != NULL) {
         count++;
     }
     fclose(f);
+    free(read_buffer);
     
     // 清理
     remove(filename);
