@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript 浏览器性能测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .progress {
+            margin: 20px 0;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background: #f8f9fa;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .result-number {
+            text-align: right;
+            font-family: monospace;
+        }
+        
+        .total-row {
+            font-weight: bold;
+            background: #f0f0f0;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+        
+        .note {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            font-size: 13px;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JavaScript 浏览器性能测试</h1>
+        <div class="subtitle">Browser Performance Benchmark</div>
+        
+        <div class="warning">
+            ⚠️ 注意：测试7（文件I/O）在浏览器中无法运行，将被跳过。测试过程可能需要几分钟，请耐心等待。
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn" onclick="runAllTests()">开始测试</button>
+        </div>
+        
+        <div id="progress" class="progress" style="display: none;">
+            <div id="progressText">准备中...</div>
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+        </div>
+        
+        <table id="resultsTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>测试项目</th>
+                    <th class="result-number">结果</th>
+                    <th class="result-number">耗时(ms)</th>
+                </tr>
+            </thead>
+            <tbody id="resultsBody">
+            </tbody>
+        </table>
+        
+        <div class="note">
+            <strong>说明：</strong>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>浏览器版本会比Node.js版本慢，这是正常现象</li>
+                <li>测试7（文件I/O）因浏览器安全限制无法执行</li>
+                <li>不同浏览器的性能可能有显著差异</li>
+                <li>建议关闭其他标签页以获得更准确的结果</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 简单的随机数生成器（使用种子）
+        class SeededRandom {
+            constructor(seed) {
+                this.seed = seed;
+            }
+            next() {
+                this.seed = (this.seed * 9301 + 49297) % 233280;
+                return this.seed / 233280;
+            }
+        }
+
+        // 测试1：斐波那契数列（递归）
+        function fibRecursive(n) {
+            if (n <= 1) return n;
+            return fibRecursive(n - 1) + fibRecursive(n - 2);
+        }
+
+        function test1FibonacciRecursive() {
+            return fibRecursive(41);
+        }
+
+        // 测试2：斐波那契数列（迭代）
+        function test2FibonacciIterative() {
+            const n = 10000000;
+            if (n <= 1) return n;
+            
+            let a = 0, b = 1;
+            for (let i = 2; i <= n; i++) {
+                [a, b] = [b, (a + b) % 1000000007];
+            }
+            return b;
+        }
+
+        // 测试3：质数筛选
+        function test3PrimeSieve() {
+            const limit = 20000000;
+            const isPrime = new Array(limit + 1).fill(true);
+            isPrime[0] = isPrime[1] = false;
+            
+            for (let i = 2; i * i <= limit; i++) {
+                if (isPrime[i]) {
+                    for (let j = i * i; j <= limit; j += i) {
+                        isPrime[j] = false;
+                    }
+                }
+            }
+            
+            return isPrime.filter(x => x).length;
+        }
+
+        // 测试4：快速排序
+        function test4Sorting() {
+            const rng = new SeededRandom(42);
+            const arr = Array.from({length: 2000000}, () => Math.floor(rng.next() * 1000001));
+            
+            arr.sort((a, b) => a - b);
+            return arr[0];
+        }
+
+        // 测试5：字符串拼接
+        function test5StringConcat() {
+            const parts = [];
+            for (let i = 0; i < 20000000; i++) {
+                parts.push('a');
+            }
+            const result = parts.join('');
+            return result.length;
+        }
+
+        // 测试6：哈希表操作
+        function test6HashTable() {
+            const hashMap = new Map();
+            
+            // 插入
+            for (let i = 0; i < 1000000; i++) {
+                hashMap.set(`key_${i}`, i);
+            }
+            
+            // 查询
+            const rng = new SeededRandom(42);
+            let foundCount = 0;
+            for (let i = 0; i < 1000000; i++) {
+                const key = `key_${Math.floor(rng.next() * 1000001)}`;
+                if (hashMap.has(key)) {
+                    foundCount++;
+                }
+            }
+            
+            return foundCount;
+        }
+
+        // 测试7：文件I/O（浏览器中跳过）
+        function test7FileIO() {
+            return -1; // 浏览器中无法执行
+        }
+
+        // 测试8：内存分配与访问
+        function test8MemoryAllocation() {
+            const data = [];
+            
+            // 创建对象
+            for (let i = 0; i < 1000000; i++) {
+                data.push({
+                    id: i,
+                    value: i * 2,
+                    name: `item_${i}`
+                });
+            }
+            
+            // 随机访问
+            const rng = new SeededRandom(42);
+            let total = 0;
+            for (let i = 0; i < 1000000; i++) {
+                const idx = Math.floor(rng.next() * 1000000);
+                total += data[idx].value;
+            }
+            
+            return total % 1000000;
+        }
+
+        // 测试9：矩阵乘法
+        function test9MatrixMultiplication() {
+            const size = 400;
+            
+            // 初始化矩阵
+            const rng = new SeededRandom(42);
+            const A = Array.from({length: size}, () => Array.from({length: size}, () => rng.next()));
+            const B = Array.from({length: size}, () => Array.from({length: size}, () => rng.next()));
+            const C = Array.from({length: size}, () => Array(size).fill(0));
+            
+            // 矩阵乘法
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size; j++) {
+                    for (let k = 0; k < size; k++) {
+                        C[i][j] += A[i][k] * B[k][j];
+                    }
+                }
+            }
+            
+            return Math.floor(C[0][0] * 1000);
+        }
+
+        // 测试10：字符串处理
+        function test10StringProcessing() {
+            // 创建长文本
+            const base = "The quick brown fox jumps over the lazy dog. ";
+            let text = base.repeat(1500000);
+            
+            // 查找 "the" (使用字符串方法，不使用正则)
+            let count = 0;
+            let pos = 0;
+            while ((pos = text.indexOf("the", pos)) !== -1) {
+                count++;
+                pos += 3;
+            }
+            
+            // 替换 "fox" 为 "cat" (使用字符串方法)
+            text = text.split("fox").join("cat");
+            
+            // 分割：统计单词数
+            const words = text.split(" ").filter(w => w.length > 0);
+            
+            return words.length;
+        }
+
+        // 测试列表
+        const tests = [
+            { name: '斐波那契(递归)', func: test1FibonacciRecursive },
+            { name: '斐波那契(迭代)', func: test2FibonacciIterative },
+            { name: '质数筛选', func: test3PrimeSieve },
+            { name: '快速排序', func: test4Sorting },
+            { name: '字符串拼接', func: test5StringConcat },
+            { name: '哈希表操作', func: test6HashTable },
+            { name: '文件I/O', func: test7FileIO },
+            { name: '内存分配', func: test8MemoryAllocation },
+            { name: '矩阵乘法', func: test9MatrixMultiplication },
+            { name: '字符串处理', func: test10StringProcessing }
+        ];
+
+        // 运行单个测试
+        async function runTest(test) {
+            return new Promise((resolve) => {
+                // 使用setTimeout让UI有机会更新
+                setTimeout(() => {
+                    const start = performance.now();
+                    const result = test.func();
+                    const elapsed = performance.now() - start;
+                    resolve({ result, elapsed });
+                }, 10);
+            });
+        }
+
+        // 运行所有测试
+        async function runAllTests() {
+            const startBtn = document.getElementById('startBtn');
+            const progress = document.getElementById('progress');
+            const progressText = document.getElementById('progressText');
+            const progressFill = document.getElementById('progressFill');
+            const resultsTable = document.getElementById('resultsTable');
+            const resultsBody = document.getElementById('resultsBody');
+            
+            // 禁用按钮
+            startBtn.disabled = true;
+            startBtn.textContent = '测试中...';
+            
+            // 显示进度
+            progress.style.display = 'block';
+            resultsTable.style.display = 'none';
+            resultsBody.innerHTML = '';
+            
+            const totalStart = performance.now();
+            
+            for (let i = 0; i < tests.length; i++) {
+                const test = tests[i];
+                
+                // 更新进度
+                progressText.textContent = `正在运行: ${test.name} (${i + 1}/${tests.length})`;
+                progressFill.style.width = `${((i) / tests.length) * 100}%`;
+                
+                // 运行测试
+                const { result, elapsed } = await runTest(test);
+                
+                // 添加结果到表格
+                const row = resultsBody.insertRow();
+                row.innerHTML = `
+                    <td>${test.name}</td>
+                    <td class="result-number">${result === -1 ? '跳过' : result.toLocaleString()}</td>
+                    <td class="result-number">${elapsed.toFixed(2)}</td>
+                `;
+                
+                // 如果是文件I/O测试，标记为跳过
+                if (result === -1) {
+                    row.style.opacity = '0.5';
+                }
+            }
+            
+            const totalElapsed = performance.now() - totalStart;
+            
+            // 添加总计行
+            const totalRow = resultsBody.insertRow();
+            totalRow.className = 'total-row';
+            totalRow.innerHTML = `
+                <td>总耗时</td>
+                <td class="result-number">-</td>
+                <td class="result-number">${totalElapsed.toFixed(2)}</td>
+            `;
+            
+            // 完成
+            progressFill.style.width = '100%';
+            progressText.textContent = '测试完成！';
+            resultsTable.style.display = 'table';
+            
+            // 恢复按钮
+            setTimeout(() => {
+                startBtn.disabled = false;
+                startBtn.textContent = '重新测试';
+                progress.style.display = 'none';
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
