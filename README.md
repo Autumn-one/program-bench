@@ -6,11 +6,12 @@ A comprehensive performance benchmark suite comparing 15 programming languages a
 
 Create a standardized performance benchmark to compare multiple programming languages using identical algorithms and data sizes, ensuring fair and meaningful comparisons.
 
-## 📊 Languages Tested (15)
+## 📊 Languages Tested (16)
 
 ### Compiled Languages
 - **C** - Low-level performance baseline
 - **C++** - Object-oriented systems programming
+- **C#** - Modern .NET platform language
 - **Rust** - Memory-safe systems programming
 - **Zig** - Modern systems programming
 - **Nim** - High-performance with clean syntax
@@ -107,6 +108,10 @@ gcc -O3 -o benchmark_c benchmark_c.c
 # C++
 g++ -O3 -std=c++17 -o benchmark_cpp benchmark_cpp.cpp
 
+# C#
+csc /optimize+ /out:Benchmark.exe Benchmark.cs
+# or with dotnet: dotnet build -c Release
+
 # Rust
 cargo build --release
 # or: rustc -O -C opt-level=3 benchmark_rust.rs
@@ -133,6 +138,7 @@ javac Benchmark.java
 # Compiled languages
 ./benchmark_c
 ./benchmark_cpp
+./Benchmark.exe  # or: dotnet run -c Release (for C#)
 ./benchmark_rust
 ./benchmark_zig
 ./benchmark_nim
@@ -168,6 +174,7 @@ Open `benchmark_browser.html` in a web browser to run the JavaScript benchmark i
 program-bench/
 ├── benchmark_c.c                    # C implementation
 ├── benchmark_cpp.cpp                # C++ implementation
+├── Benchmark.cs                     # C# implementation
 ├── benchmark_rust.rs                # Rust implementation
 ├── benchmark_zig.zig                # Zig implementation
 ├── benchmark_nim.nim                # Nim implementation
@@ -246,7 +253,7 @@ See `FINAL_VERIFICATION_SUMMARY.md` for detailed verification report.
 
 ## 📊 Consistency Score: 99.3%
 
-All tests are consistent across languages, with only PHP Test 5 using a different implementation strategy due to memory constraints.
+All tests are consistent across 16 languages, with only PHP Test 5 using a different implementation strategy due to memory constraints.
 
 ## 🤝 Contributing
 

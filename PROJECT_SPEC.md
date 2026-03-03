@@ -4,23 +4,24 @@
 
 创建一套标准化的性能测试基准，对比多种编程语言在相同算法和数据规模下的执行性能。
 
-## 测试语言列表（共15种）
+## 测试语言列表（共16种）
 
 1. **C** - 底层性能基准
 2. **C++** - 面向对象的系统编程
-3. **Rust** - 内存安全的系统编程
-4. **Zig** - 现代系统编程语言
-5. **Nim** - 高性能且语法简洁
-6. **V** (vlang) - 简单快速的编译型语言
-7. **Go** - 并发友好，快速编译
-8. **Java** - 企业级应用主流（JVM代表）
-9. **Julia** - 高性能科学计算
-10. **Python** - 数据科学和通用脚本
-11. **JavaScript/Node.js** - Web开发主流
-12. **Ruby** - 动态语言，Web框架流行
-13. **PHP** - Web后端主流
-14. **Lua** - 轻量级嵌入式脚本
-15. **AutoHotkey v2** - Windows自动化脚本（特殊定位，结果需单独标注）
+3. **C#** - 现代.NET平台语言
+4. **Rust** - 内存安全的系统编程
+5. **Zig** - 现代系统编程语言
+6. **Nim** - 高性能且语法简洁
+7. **V** (vlang) - 简单快速的编译型语言
+8. **Go** - 并发友好，快速编译
+9. **Java** - 企业级应用主流（JVM代表）
+10. **Julia** - 高性能科学计算
+11. **Python** - 数据科学和通用脚本
+12. **JavaScript/Node.js** - Web开发主流
+13. **Ruby** - 动态语言，Web框架流行
+14. **PHP** - Web后端主流
+15. **Lua** - 轻量级嵌入式脚本
+16. **AutoHotkey v2** - Windows自动化脚本（特殊定位，结果需单独标注）
 
 **注意：** 
 - Kotlin已排除（与Java运行在同一JVM上，性能几乎相同）
@@ -104,6 +105,7 @@
 ```
 C:        gcc -O3 -o benchmark_c benchmark_c.c
 C++:      g++ -O3 -std=c++17 -o benchmark_cpp benchmark_cpp.cpp
+C#:       csc /optimize+ /out:Benchmark.exe Benchmark.cs
 Rust:     cargo build --release (或 rustc -O -C opt-level=3)
 Zig:      zig build-exe benchmark_zig.zig -O ReleaseFast
 Nim:      nim c -d:release --opt:speed -o:benchmark_nim benchmark_nim.nim
@@ -211,6 +213,7 @@ performance-benchmark/
 ├── benchmark_python.py          # Python测试（已完成，作为参考）
 ├── benchmark_c.c                # 待创建
 ├── benchmark_cpp.cpp            # 待创建
+├── Benchmark.cs                 # 待创建
 ├── benchmark_rust.rs            # 待创建
 ├── benchmark_zig.zig            # 待创建
 ├── benchmark_nim.nim            # 待创建
@@ -238,11 +241,11 @@ performance-benchmark/
 ## 当前进度
 
 - ✅ Python版本已完成并调优
-- ⏳ 其他14种语言待实现
+- ⏳ 其他15种语言待实现
 
 ## 下一步工作
 
-根据 `benchmark_python.py` 的实现，为其他14种语言创建对应的测试文件，确保：
+根据 `benchmark_python.py` 的实现，为其他15种语言创建对应的测试文件，确保：
 1. 算法逻辑完全一致
 2. 数据规模完全一致
 3. 输出格式完全一致
