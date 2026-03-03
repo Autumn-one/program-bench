@@ -42,9 +42,8 @@ int test3_prime_sieve() {
     int limit = 20000000;
     bool *is_prime = (bool*)malloc((limit + 1) * sizeof(bool));
     
-    for (int i = 0; i <= limit; i++) {
-        is_prime[i] = true;
-    }
+    // 使用memset更高效
+    memset(is_prime, 1, (limit + 1) * sizeof(bool));
     is_prime[0] = is_prime[1] = false;
     
     for (int i = 2; i * i <= limit; i++) {
@@ -96,6 +95,7 @@ int test5_string_concat() {
     }
     str[count] = '\0';
     
+    // 使用str的内容，防止编译器优化掉整个操作
     int len = strlen(str);
     free(str);
     return len;
@@ -187,43 +187,32 @@ int test8_memory_allocation() {
 int test9_matrix_multiplication() {
     int size = 400;
     
-    // 分配矩阵
-    double **A = (double**)malloc(size * sizeof(double*));
-    double **B = (double**)malloc(size * sizeof(double*));
-    double **C = (double**)malloc(size * sizeof(double*));
-    
-    for (int i = 0; i < size; i++) {
-        A[i] = (double*)malloc(size * sizeof(double));
-        B[i] = (double*)malloc(size * sizeof(double));
-        C[i] = (double*)calloc(size, sizeof(double));
-    }
+    // 使用一维数组模拟二维矩阵，提高缓存命中率
+    double *A = (double*)malloc(size * size * sizeof(double));
+    double *B = (double*)malloc(size * size * sizeof(double));
+    double *C = (double*)calloc(size * size, sizeof(double));
     
     // 初始化
     srand(42);
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            A[i][j] = (double)rand() / RAND_MAX;
-            B[i][j] = (double)rand() / RAND_MAX;
-        }
+    for (int i = 0; i < size * size; i++) {
+        A[i] = (double)rand() / RAND_MAX;
+        B[i] = (double)rand() / RAND_MAX;
     }
     
     // 矩阵乘法
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
+            double sum = 0.0;
             for (int k = 0; k < size; k++) {
-                C[i][j] += A[i][k] * B[k][j];
+                sum += A[i * size + k] * B[k * size + j];
             }
+            C[i * size + j] = sum;
         }
     }
     
-    int result = (int)(C[0][0] * 1000);
+    int result = (int)(C[0] * 1000);
     
     // 释放内存
-    for (int i = 0; i < size; i++) {
-        free(A[i]);
-        free(B[i]);
-        free(C[i]);
-    }
     free(A);
     free(B);
     free(C);

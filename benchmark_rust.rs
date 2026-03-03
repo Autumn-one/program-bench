@@ -182,28 +182,28 @@ fn test9_matrix_multiplication() -> i32 {
     let size = 400;
     let mut rng = SimpleRng::new(42);
 
-    // 初始化矩阵
-    let mut a = vec![vec![0.0; size]; size];
-    let mut b = vec![vec![0.0; size]; size];
-    let mut c = vec![vec![0.0; size]; size];
+    // 使用一维Vec模拟二维矩阵，提高缓存命中率
+    let mut a = vec![0.0; size * size];
+    let mut b = vec![0.0; size * size];
+    let mut c = vec![0.0; size * size];
 
-    for i in 0..size {
-        for j in 0..size {
-            a[i][j] = rng.gen_f64();
-            b[i][j] = rng.gen_f64();
-        }
+    for i in 0..(size * size) {
+        a[i] = rng.gen_f64();
+        b[i] = rng.gen_f64();
     }
 
     // 矩阵乘法
     for i in 0..size {
         for j in 0..size {
+            let mut sum = 0.0;
             for k in 0..size {
-                c[i][j] += a[i][k] * b[k][j];
+                sum += a[i * size + k] * b[k * size + j];
             }
+            c[i * size + j] = sum;
         }
     }
 
-    (c[0][0] * 1000.0) as i32
+    (c[0] * 1000.0) as i32
 }
 
 // 测试10：字符串处理
@@ -222,10 +222,27 @@ fn test10_string_processing() -> usize {
     // 替换 "fox" 为 "cat"
     let text = text.replace("fox", "cat");
     
-    // 分割：统计单词数
-    let words: Vec<&str> = text.split_whitespace().collect();
+    // 分割：统计单词数 - 手动计数，避免创建Vec
+    let mut word_count = 0;
+    let mut in_word = false;
     
-    words.len()
+    for c in text.chars() {
+        if c == ' ' || c == '\n' || c == '\t' {
+            if in_word {
+                word_count += 1;
+                in_word = false;
+            }
+        } else {
+            in_word = true;
+        }
+    }
+    
+    // 最后一个单词
+    if in_word {
+        word_count += 1;
+    }
+    
+    word_count
 }
 
 fn main() {

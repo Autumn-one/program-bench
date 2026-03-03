@@ -170,31 +170,31 @@ int test8_memory_allocation() {
 int test9_matrix_multiplication() {
     int size = 400;
     
-    // 初始化矩阵
-    vector<vector<double>> A(size, vector<double>(size));
-    vector<vector<double>> B(size, vector<double>(size));
-    vector<vector<double>> C(size, vector<double>(size, 0.0));
+    // 使用一维vector模拟二维矩阵，提高缓存命中率
+    vector<double> A(size * size);
+    vector<double> B(size * size);
+    vector<double> C(size * size, 0.0);
     
     mt19937 rng(42);
     uniform_real_distribution<double> dist(0.0, 1.0);
     
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            A[i][j] = dist(rng);
-            B[i][j] = dist(rng);
-        }
+    for (int i = 0; i < size * size; i++) {
+        A[i] = dist(rng);
+        B[i] = dist(rng);
     }
     
     // 矩阵乘法
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
+            double sum = 0.0;
             for (int k = 0; k < size; k++) {
-                C[i][j] += A[i][k] * B[k][j];
+                sum += A[i * size + k] * B[k * size + j];
             }
+            C[i * size + j] = sum;
         }
     }
     
-    return static_cast<int>(C[0][0] * 1000);
+    return static_cast<int>(C[0] * 1000);
 }
 
 // 测试10：字符串处理

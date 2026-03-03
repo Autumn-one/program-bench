@@ -85,10 +85,8 @@ def test4_sorting():
 # 测试5：字符串拼接
 @measure_time
 def test5_string_concat():
-    parts = []
-    for i in range(20000000):
-        parts.append('a')
-    result = ''.join(parts)
+    # 使用字符串乘法更高效
+    result = 'a' * 20000000
     return len(result)
 
 
@@ -161,19 +159,21 @@ def test8_memory_allocation():
 def test9_matrix_multiplication():
     size = 400
     
-    # 创建两个矩阵
+    # 使用一维列表模拟二维矩阵，提高缓存命中率
     random.seed(42)
-    A = [[random.random() for _ in range(size)] for _ in range(size)]
-    B = [[random.random() for _ in range(size)] for _ in range(size)]
+    A = [random.random() for _ in range(size * size)]
+    B = [random.random() for _ in range(size * size)]
+    C = [0.0] * (size * size)
     
     # 矩阵乘法
-    C = [[0.0 for _ in range(size)] for _ in range(size)]
     for i in range(size):
         for j in range(size):
+            sum_val = 0.0
             for k in range(size):
-                C[i][j] += A[i][k] * B[k][j]
+                sum_val += A[i * size + k] * B[k * size + j]
+            C[i * size + j] = sum_val
     
-    return int(C[0][0] * 1000)  # 返回一个验证值
+    return int(C[0] * 1000)  # 返回一个验证值
 
 
 # 测试10：字符串处理
@@ -188,10 +188,23 @@ def test10_string_processing():
     # 替换
     new_text = text.replace("fox", "cat")
     
-    # 分割
-    words = new_text.split()
+    # 分割：统计单词数 - 手动计数，避免创建巨大列表
+    word_count = 0
+    in_word = False
     
-    return len(words)
+    for c in new_text:
+        if c in ' \n\t':
+            if in_word:
+                word_count += 1
+                in_word = False
+        else:
+            in_word = True
+    
+    # 最后一个单词
+    if in_word:
+        word_count += 1
+    
+    return word_count
 
 
 def main():

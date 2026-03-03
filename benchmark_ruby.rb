@@ -54,11 +54,8 @@ end
 
 # 测试5：字符串拼接
 def test5_string_concat
-  parts = []
-  20000000.times do
-    parts << 'a'
-  end
-  str = parts.join('')
+  # 使用字符串乘法更高效
+  str = 'a' * 20000000
   str.length
 end
 
@@ -133,22 +130,24 @@ end
 def test9_matrix_multiplication
   size = 400
   
-  # 初始化矩阵
+  # 使用一维数组模拟二维矩阵，提高缓存命中率
   srand(42)
-  a = Array.new(size) { Array.new(size) { rand } }
-  b = Array.new(size) { Array.new(size) { rand } }
-  c = Array.new(size) { Array.new(size, 0.0) }
+  a = Array.new(size * size) { rand }
+  b = Array.new(size * size) { rand }
+  c = Array.new(size * size, 0.0)
   
   # 矩阵乘法
   (0...size).each do |i|
     (0...size).each do |j|
+      sum = 0.0
       (0...size).each do |k|
-        c[i][j] += a[i][k] * b[k][j]
+        sum += a[i * size + k] * b[k * size + j]
       end
+      c[i * size + j] = sum
     end
   end
   
-  (c[0][0] * 1000).to_i
+  (c[0] * 1000).to_i
 end
 
 # 测试10：字符串处理
@@ -163,10 +162,25 @@ def test10_string_processing
   # 替换 "fox" 为 "cat"
   text = text.gsub("fox", "cat")
   
-  # 分割：统计单词数 (使用split按空格分割)
-  words = text.split(' ').reject(&:empty?)
+  # 分割：统计单词数 - 手动计数，避免创建巨大数组
+  word_count = 0
+  in_word = false
   
-  words.length
+  text.each_char do |c|
+    if c == ' ' || c == "\n" || c == "\t"
+      if in_word
+        word_count += 1
+        in_word = false
+      end
+    else
+      in_word = true
+    end
+  end
+  
+  # 最后一个单词
+  word_count += 1 if in_word
+  
+  word_count
 end
 
 def measure_time

@@ -268,7 +268,8 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
     
-    const stdout = std.io.getStdOut().writer();
+    const stdout_file = std.io.getStdOut();
+    const stdout = stdout_file.writer();
     
     try stdout.print("======================================================================\n", .{});
     try stdout.print("Zig 性能测试\n", .{});

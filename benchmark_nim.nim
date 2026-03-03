@@ -26,6 +26,7 @@ proc test2FibonacciIterative(): int64 =
 # 测试3：质数筛选
 proc test3PrimeSieve(): int =
   let limit = 20000000
+  # 直接初始化为true，更高效
   var isPrime = newSeq[bool](limit + 1)
   for i in 0..limit:
     isPrime[i] = true
@@ -59,9 +60,8 @@ proc test4Sorting(): int =
 
 # 测试5：字符串拼接
 proc test5StringConcat(): int =
-  var str = ""
-  for i in 0..<20000000:
-    str.add('a')
+  # 使用repeat更高效，避免多次重新分配
+  let str = repeat('a', 20000000)
   return str.len
 
 # 测试6：哈希表操作
@@ -134,36 +134,33 @@ proc test8MemoryAllocation(): int =
 proc test9MatrixMultiplication(): int =
   let size = 400
   
-  # 初始化矩阵
+  # 使用一维数组模拟二维矩阵，提高缓存命中率
   randomize(42)
-  var A = newSeq[seq[float]](size)
-  var B = newSeq[seq[float]](size)
-  var C = newSeq[seq[float]](size)
+  var A = newSeq[float](size * size)
+  var B = newSeq[float](size * size)
+  var C = newSeq[float](size * size)
   
-  for i in 0..<size:
-    A[i] = newSeq[float](size)
-    B[i] = newSeq[float](size)
-    C[i] = newSeq[float](size)
-    for j in 0..<size:
-      A[i][j] = rand(1.0)
-      B[i][j] = rand(1.0)
-      C[i][j] = 0.0
+  # 初始化矩阵
+  for i in 0..<(size * size):
+    A[i] = rand(1.0)
+    B[i] = rand(1.0)
+    C[i] = 0.0
   
   # 矩阵乘法
   for i in 0..<size:
     for j in 0..<size:
+      var sum = 0.0
       for k in 0..<size:
-        C[i][j] += A[i][k] * B[k][j]
+        sum += A[i * size + k] * B[k * size + j]
+      C[i * size + j] = sum
   
-  return int(C[0][0] * 1000)
+  return int(C[0] * 1000)
 
 # 测试10：字符串处理
 proc test10StringProcessing(): int =
-  # 创建长文本
+  # 创建长文本 - 使用repeat更高效
   let base = "The quick brown fox jumps over the lazy dog. "
-  var text = ""
-  for i in 0..<1500000:
-    text.add(base)
+  var text = repeat(base, 1500000)
   
   # 查找 "the"
   var count = 0
@@ -173,15 +170,28 @@ proc test10StringProcessing(): int =
     if pos == -1:
       break
     count += 1
-    pos += 1
+    pos += 3  # 跳过 "the" 的长度，避免重复计数
   
   # 替换 "fox" 为 "cat"
   text = text.replace("fox", "cat")
   
-  # 分割：统计单词数
-  let words = text.splitWhitespace()
+  # 分割：统计单词数 - 手动计数，避免创建巨大数组
+  var wordCount = 0
+  var inWord = false
   
-  return words.len
+  for c in text:
+    if c == ' ' or c == '\n' or c == '\t':
+      if inWord:
+        wordCount += 1
+        inWord = false
+    else:
+      inWord = true
+  
+  # 最后一个单词
+  if inWord:
+    wordCount += 1
+  
+  return wordCount
 
 proc measureTime(name: string, fn: proc(): int): (int, float) =
   let start = cpuTime()

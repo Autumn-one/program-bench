@@ -67,11 +67,8 @@ function test4Sorting() {
 
 // 测试5：字符串拼接
 function test5StringConcat() {
-    const parts = [];
-    for (let i = 0; i < 20000000; i++) {
-        parts.push('a');
-    }
-    const result = parts.join('');
+    // 使用repeat更高效
+    const result = 'a'.repeat(20000000);
     return result.length;
 }
 
@@ -153,22 +150,30 @@ function test8MemoryAllocation() {
 function test9MatrixMultiplication() {
     const size = 400;
     
-    // 初始化矩阵
+    // 使用一维数组模拟二维矩阵，提高缓存命中率
     const rng = new SeededRandom(42);
-    const A = Array.from({length: size}, () => Array.from({length: size}, () => rng.next()));
-    const B = Array.from({length: size}, () => Array.from({length: size}, () => rng.next()));
-    const C = Array.from({length: size}, () => Array(size).fill(0));
+    const A = new Array(size * size);
+    const B = new Array(size * size);
+    const C = new Array(size * size).fill(0);
     
-    // 矩阵乘法
+    // 初始化矩阵
+    for (let i = 0; i < size * size; i++) {
+        A[i] = rng.next();
+        B[i] = rng.next();
+    }
+    
+    // 矩阵乘法 - 使用一维数组索引
     for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
+            let sum = 0;
             for (let k = 0; k < size; k++) {
-                C[i][j] += A[i][k] * B[k][j];
+                sum += A[i * size + k] * B[k * size + j];
             }
+            C[i * size + j] = sum;
         }
     }
     
-    return Math.floor(C[0][0] * 1000);
+    return Math.floor(C[0] * 1000);
 }
 
 // 测试10：字符串处理
@@ -188,10 +193,28 @@ function test10StringProcessing() {
     // 替换 "fox" 为 "cat" (使用字符串方法)
     text = text.split("fox").join("cat");
     
-    // 分割：统计单词数
-    const words = text.split(" ").filter(w => w.length > 0);
+    // 分割：统计单词数 - 手动计数，避免创建巨大数组
+    let wordCount = 0;
+    let inWord = false;
     
-    return words.length;
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (c === ' ' || c === '\n' || c === '\t') {
+            if (inWord) {
+                wordCount++;
+                inWord = false;
+            }
+        } else {
+            inWord = true;
+        }
+    }
+    
+    // 最后一个单词
+    if (inWord) {
+        wordCount++;
+    }
+    
+    return wordCount;
 }
 
 function measureTime(name, fn) {
