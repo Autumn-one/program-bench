@@ -1,0 +1,42 @@
+# Compiled binaries
+benchmark_c
+benchmark_c.exe
+benchmark_cpp
+benchmark_cpp.exe
+benchmark_rust
+benchmark_rust.exe
+benchmark_zig
+benchmark_zig.exe
+benchmark_nim
+benchmark_nim.exe
+benchmark_v
+benchmark_v.exe
+benchmark_go
+benchmark_go.exe
+*.class
+*.o
+*.obj
+
+# Rust
+target/
+Cargo.lock
+
+# Test files
+test_file_*.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Result files (optional, uncomment if you don't want to track results)
+# result_*.json
