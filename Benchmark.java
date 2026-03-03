@@ -234,11 +234,6 @@ public class Benchmark {
         
         long totalStart = System.nanoTime();
         
-        // 预热JIT
-        for (int i = 0; i < 2; i++) {
-            fibRecursive(20);
-        }
-        
         // 测试1
         long start = System.nanoTime();
         long result1 = test1FibonacciRecursive();
