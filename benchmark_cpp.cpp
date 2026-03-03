@@ -15,6 +15,18 @@
 using namespace std;
 using namespace std::chrono;
 
+// FNV-1a哈希函数 - 比默认哈希快
+struct FNVHash {
+    size_t operator()(const string& str) const {
+        size_t hash = 14695981039346656037ULL;
+        for (char c : str) {
+            hash ^= static_cast<size_t>(c);
+            hash *= 1099511628211ULL;
+        }
+        return hash;
+    }
+};
+
 // 测试1：斐波那契数列（递归）
 long long fib_recursive(int n) {
     if (n <= 1) return n;
@@ -75,6 +87,30 @@ int test4_sorting() {
     return arr[0];
 }
 
+// 快速整数转字符串（C++版本）
+static inline int int_to_str_cpp(int num, char *str) {
+    if (num == 0) {
+        str[0] = '0';
+        return 1;
+    }
+    
+    int len = 0;
+    int temp = num;
+    
+    while (temp > 0) {
+        len++;
+        temp /= 10;
+    }
+    
+    int pos = len - 1;
+    while (num > 0) {
+        str[pos--] = '0' + (num % 10);
+        num /= 10;
+    }
+    
+    return len;
+}
+
 // 测试5：字符串拼接
 int test5_string_concat() {
     string result;
@@ -89,14 +125,16 @@ int test5_string_concat() {
 
 // 测试6：哈希表操作
 int test6_hash_table() {
-    unordered_map<string, int> hash_map;
+    // 使用FNV哈希，比默认哈希快
+    unordered_map<string, int, FNVHash> hash_map;
+    hash_map.reserve(1000000);
     
     // 插入
     for (int i = 0; i < 1000000; i++) {
         hash_map["key_" + to_string(i)] = i;
     }
     
-    // 查询
+    // 查询 - 简化版本
     mt19937 rng(42);
     uniform_int_distribution<int> dist(0, 1000000);
     
@@ -115,15 +153,32 @@ int test6_hash_table() {
 int test7_file_io() {
     const string filename = "test_file_cpp.txt";
     
-    // 写入
-    ofstream outfile(filename);
+    // 写入 - 一次性构建所有内容
+    ofstream outfile(filename, ios::binary);
+    
+    // 预分配字符串空间
+    size_t estimated_size = 2000000ULL * 50;
+    string all_content;
+    all_content.reserve(estimated_size);
+    
+    const string prefix = "Line ";
+    const string suffix = ": This is a test line.\n";
+    char num_buffer[16];
+    
+    // 一次性构建所有行
     for (int i = 0; i < 2000000; i++) {
-        outfile << "Line " << i << ": This is a test line.\n";
+        all_content += prefix;
+        int len = int_to_str_cpp(i, num_buffer);
+        all_content.append(num_buffer, len);
+        all_content += suffix;
     }
+    
+    // 一次性写入
+    outfile.write(all_content.c_str(), all_content.size());
     outfile.close();
     
     // 读取
-    ifstream infile(filename);
+    ifstream infile(filename, ios::binary);
     string line;
     int count = 0;
     while (getline(infile, line)) {

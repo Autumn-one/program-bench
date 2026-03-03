@@ -101,27 +101,135 @@ int test5_string_concat() {
     return len;
 }
 
-// 测试6：哈希表操作（简化版，使用数组模拟）
-int test6_hash_table() {
-    int size = 1000000;
-    int *hash_map = (int*)calloc(size, sizeof(int));
+// 简单的哈希表实现（C语言）- 优化版
+typedef struct HashNode {
+    char key[16];  // 固定大小，避免malloc
+    int value;
+    struct HashNode *next;
+} HashNode;
+
+typedef struct {
+    HashNode **buckets;
+    int capacity;
+} HashMap;
+
+// FNV-1a哈希函数
+static inline unsigned int fnv_hash(const char *str) {
+    unsigned int hash = 2166136261u;
+    while (*str) {
+        hash ^= (unsigned char)(*str++);
+        hash *= 16777619u;
+    }
+    return hash;
+}
+
+HashMap* hashmap_create(int capacity) {
+    HashMap *map = (HashMap*)malloc(sizeof(HashMap));
+    map->capacity = capacity;
+    map->buckets = (HashNode**)calloc(capacity, sizeof(HashNode*));
+    return map;
+}
+
+void hashmap_put(HashMap *map, const char *key, int value) {
+    unsigned int index = fnv_hash(key) % map->capacity;
+    HashNode *node = map->buckets[index];
     
-    // 插入
-    for (int i = 0; i < size; i++) {
-        hash_map[i] = i;
+    // 检查是否已存在
+    while (node != NULL) {
+        if (strcmp(node->key, key) == 0) {
+            node->value = value;
+            return;
+        }
+        node = node->next;
     }
     
-    // 查询
+    // 插入新节点
+    HashNode *new_node = (HashNode*)malloc(sizeof(HashNode));
+    strcpy(new_node->key, key);  // 使用strcpy代替strdup
+    new_node->value = value;
+    new_node->next = map->buckets[index];
+    map->buckets[index] = new_node;
+}
+
+static inline bool hashmap_contains(HashMap *map, const char *key) {
+    unsigned int index = fnv_hash(key) % map->capacity;
+    HashNode *node = map->buckets[index];
+    
+    while (node != NULL) {
+        if (strcmp(node->key, key) == 0) {
+            return true;
+        }
+        node = node->next;
+    }
+    return false;
+}
+
+void hashmap_free(HashMap *map) {
+    for (int i = 0; i < map->capacity; i++) {
+        HashNode *node = map->buckets[i];
+        while (node != NULL) {
+            HashNode *temp = node;
+            node = node->next;
+            free(temp);
+        }
+    }
+    free(map->buckets);
+    free(map);
+}
+
+// 快速整数转字符串（避免sprintf的开销）
+static inline int int_to_str(int num, char *str) {
+    if (num == 0) {
+        str[0] = '0';
+        str[1] = '\0';
+        return 1;
+    }
+    
+    int len = 0;
+    int temp = num;
+    
+    while (temp > 0) {
+        len++;
+        temp /= 10;
+    }
+    
+    str[len] = '\0';
+    int pos = len - 1;
+    while (num > 0) {
+        str[pos--] = '0' + (num % 10);
+        num /= 10;
+    }
+    
+    return len;
+}
+
+// 测试6：哈希表操作
+int test6_hash_table() {
+    HashMap *hash_map = hashmap_create(1000000);
+    
+    // 插入 - 使用手动字符串构建
+    char key_buffer[16];
+    const char *prefix = "key_";
+    
+    for (int i = 0; i < 1000000; i++) {
+        strcpy(key_buffer, prefix);
+        int_to_str(i, key_buffer + 4);
+        hashmap_put(hash_map, key_buffer, i);
+    }
+    
+    // 查询 - 使用手动字符串构建
     srand(42);
     int found_count = 0;
-    for (int i = 0; i < size; i++) {
-        int key = rand() % 1000001;
-        if (key < size && hash_map[key] >= 0) {
+    for (int i = 0; i < 1000000; i++) {
+        int key_num = rand() % 1000001;
+        strcpy(key_buffer, prefix);
+        int_to_str(key_num, key_buffer + 4);
+        if (hashmap_contains(hash_map, key_buffer)) {
             found_count++;
         }
     }
     
-    free(hash_map);
+    hashmap_free(hash_map);
     return found_count;
 }
 
@@ -130,32 +238,46 @@ int test7_file_io() {
     const char *filename = "test_file_c.txt";
     int line_count = 2000000;
     
-    // 写入 - 批量构建字符串，减少fprintf调用
-    FILE *f = fopen(filename, "w");
-    char *write_buffer = (char*)malloc(1024 * 1024);
-    setvbuf(f, write_buffer, _IOFBF, 1024 * 1024);
+    // 写入 - 手动构建字符串，避免sprintf
+    FILE *f = fopen(filename, "wb");
     
-    // 预分配行缓冲区
-    char line[64];
+    // 预估总大小：每行约40字节
+    size_t estimated_size = (size_t)line_count * 50;
+    char *all_content = (char*)malloc(estimated_size);
+    char *ptr = all_content;
+    
+    const char *prefix = "Line ";
+    const char *suffix = ": This is a test line.\n";
+    int prefix_len = 5;
+    int suffix_len = 24;
+    
+    // 一次性构建所有行 - 手动拼接，避免sprintf
     for (int i = 0; i < line_count; i++) {
-        int len = sprintf(line, "Line %d: This is a test line.\n", i);
-        fwrite(line, 1, len, f);
+        // 复制 "Line "
+        memcpy(ptr, prefix, prefix_len);
+        ptr += prefix_len;
+        
+        // 转换数字
+        ptr += int_to_str(i, ptr);
+        
+        // 复制 ": This is a test line.\n"
+        memcpy(ptr, suffix, suffix_len);
+        ptr += suffix_len;
     }
+    
+    // 一次性写入所有内容
+    fwrite(all_content, 1, ptr - all_content, f);
+    free(all_content);
     fclose(f);
-    free(write_buffer);
     
     // 读取
-    f = fopen(filename, "r");
-    char *read_buffer = (char*)malloc(1024 * 1024);
-    setvbuf(f, read_buffer, _IOFBF, 1024 * 1024);
-    
+    f = fopen(filename, "rb");
     int count = 0;
     char line_buffer[256];
     while (fgets(line_buffer, sizeof(line_buffer), f) != NULL) {
         count++;
     }
     fclose(f);
-    free(read_buffer);
     
     // 清理
     remove(filename);

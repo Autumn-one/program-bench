@@ -2,6 +2,31 @@ use std::collections::HashMap;
 use std::fs::{File, remove_file};
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::time::Instant;
+use std::hash::{BuildHasherDefault, Hasher};
+
+// FNV-1a哈希 - 比默认的SipHash快得多
+struct FnvHasher(u64);
+
+impl Default for FnvHasher {
+    fn default() -> FnvHasher {
+        FnvHasher(0xcbf29ce484222325)
+    }
+}
+
+impl Hasher for FnvHasher {
+    fn finish(&self) -> u64 {
+        self.0
+    }
+
+    fn write(&mut self, bytes: &[u8]) {
+        for &byte in bytes {
+            self.0 ^= byte as u64;
+            self.0 = self.0.wrapping_mul(0x100000001b3);
+        }
+    }
+}
+
+type FnvBuildHasher = BuildHasherDefault<FnvHasher>;
 
 // 简单的随机数生成器（LCG）
 struct SimpleRng {
@@ -101,18 +126,23 @@ fn test5_string_concat() -> usize {
 
 // 测试6：哈希表操作
 fn test6_hash_table() -> usize {
-    let mut hash_map = HashMap::new();
+    // 使用FNV哈希，比默认的SipHash快3-4倍
+    let mut hash_map: HashMap<String, i32, FnvBuildHasher> = 
+        HashMap::with_capacity_and_hasher(1000000, FnvBuildHasher::default());
 
     // 插入
     for i in 0..1000000 {
         hash_map.insert(format!("key_{}", i), i);
     }
 
-    // 查询
+    // 查询 - 简化版本，直接用format!
     let mut rng = SimpleRng::new(42);
     let mut found_count = 0;
+    
     for _ in 0..1000000 {
-        let key = format!("key_{}", rng.gen_range(0, 1000000));
+        let num = rng.gen_range(0, 1000000);
+        let key = format!("key_{}", num);
+        
         if hash_map.contains_key(&key) {
             found_count += 1;
         }
