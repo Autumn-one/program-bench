@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::fs::{File, remove_file};
-use std::io::{BufRead, BufReader, Write};
+use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::time::Instant;
 
 // 简单的随机数生成器（LCG）
@@ -125,12 +125,14 @@ fn test6_hash_table() -> usize {
 fn test7_file_io() -> usize {
     let filename = "test_file_rust.txt";
 
-    // 写入
+    // 写入（使用BufWriter提高性能）
     {
-        let mut file = File::create(filename).unwrap();
+        let file = File::create(filename).unwrap();
+        let mut writer = BufWriter::new(file);
         for i in 0..2000000 {
-            writeln!(file, "Line {}: This is a test line.", i).unwrap();
+            writeln!(writer, "Line {}: This is a test line.", i).unwrap();
         }
+        // BufWriter会在drop时自动flush
     }
 
     // 读取
