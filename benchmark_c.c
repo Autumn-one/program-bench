@@ -130,19 +130,21 @@ int test7_file_io() {
     const char *filename = "test_file_c.txt";
     int line_count = 2000000;
     
-    // 写入 - 使用更大的缓冲区
+    // 写入 - 批量构建字符串，减少fprintf调用
     FILE *f = fopen(filename, "w");
-    // 设置更大的缓冲区 (1MB)
     char *write_buffer = (char*)malloc(1024 * 1024);
     setvbuf(f, write_buffer, _IOFBF, 1024 * 1024);
     
+    // 预分配行缓冲区
+    char line[64];
     for (int i = 0; i < line_count; i++) {
-        fprintf(f, "Line %d: This is a test line.\n", i);
+        int len = sprintf(line, "Line %d: This is a test line.\n", i);
+        fwrite(line, 1, len, f);
     }
     fclose(f);
     free(write_buffer);
     
-    // 读取 - 使用更大的缓冲区
+    // 读取
     f = fopen(filename, "r");
     char *read_buffer = (char*)malloc(1024 * 1024);
     setvbuf(f, read_buffer, _IOFBF, 1024 * 1024);
