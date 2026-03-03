@@ -1,5 +1,35 @@
-const fs = require('fs');
-const { performance } = require('perf_hooks');
+// 运行时检测和兼容性处理
+const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
+const isDeno = typeof Deno !== 'undefined';
+const isBun = typeof Bun !== 'undefined';
+
+// 文件系统API适配
+let fs, performance;
+if (isDeno) {
+    // Deno使用原生API
+    fs = {
+        writeFileSync: (path, data) => Deno.writeTextFileSync(path, data),
+        readFileSync: (path) => Deno.readTextFileSync(path),
+        unlinkSync: (path) => Deno.removeSync(path)
+    };
+    performance = globalThis.performance;
+} else {
+    // Node.js和Bun使用CommonJS
+    fs = require('fs');
+    performance = require('perf_hooks').performance;
+}
+
+// 获取运行时版本信息
+function getRuntimeInfo() {
+    if (isDeno) {
+        return `Deno ${Deno.version.deno}`;
+    } else if (isBun) {
+        return `Bun ${Bun.version}`;
+    } else if (isNode) {
+        return `Node.js ${process.version}`;
+    }
+    return 'Unknown Runtime';
+}
 
 // 简单的随机数生成器（LCG）- 全局定义，避免重复
 class SeededRandom {
@@ -225,14 +255,18 @@ function measureTime(name, fn) {
 }
 
 function main() {
-    const version = process.version;
+    const version = getRuntimeInfo();
     console.log('======================================================================');
-    console.log(`Node.js ${version} 性能测试`);
+    console.log(`${version} 性能测试`);
     console.log('======================================================================');
     console.log();
     
-    // V8 JIT预热：让V8引擎优化关键代码路径
-    process.stdout.write('V8 JIT预热中...');
+    // JIT预热：让引擎优化关键代码路径
+    if (isNode || isBun) {
+        process.stdout.write('JIT预热中...');
+    } else {
+        Deno.stdout.writeSync(new TextEncoder().encode('JIT预热中...'));
+    }
     for (let i = 0; i < 5; i++) {
         fibRecursive(20);
         test2FibonacciIterative();
