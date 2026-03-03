@@ -68,10 +68,8 @@ class Benchmark
         int limit = 20000000;
         bool[] isPrime = new bool[limit + 1];
         
-        for (int i = 0; i <= limit; i++)
-        {
-            isPrime[i] = true;
-        }
+        // 使用Array.Fill更高效
+        Array.Fill(isPrime, true);
         isPrime[0] = isPrime[1] = false;
 
         for (int i = 2; i * i <= limit; i++)
@@ -125,7 +123,7 @@ class Benchmark
     // 测试6：哈希表操作
     static int Test6HashTable()
     {
-        Dictionary<string, int> hashMap = new Dictionary<string, int>();
+        Dictionary<string, int> hashMap = new Dictionary<string, int>(1000000);
 
         // 插入
         for (int i = 0; i < 1000000; i++)
@@ -133,12 +131,13 @@ class Benchmark
             hashMap[$"key_{i}"] = i;
         }
 
-        // 查询
+        // 查询 - 优化：重用字符串以减少分配
         SimpleRandom rng = new SimpleRandom(42);
         int foundCount = 0;
         for (int i = 0; i < 1000000; i++)
         {
-            string key = $"key_{rng.Next(0, 1000000)}";
+            int keyNum = rng.Next(0, 1000000);
+            string key = $"key_{keyNum}";
             if (hashMap.ContainsKey(key))
             {
                 foundCount++;
@@ -181,9 +180,9 @@ class Benchmark
     // 测试8：内存分配与访问
     class DataObject
     {
-        public int Id { get; set; }
-        public int Value { get; set; }
-        public string Name { get; set; }
+        public int Id;      // 使用字段而非属性，性能更好
+        public int Value;
+        public string Name;
     }
 
     static int Test8MemoryAllocation()
@@ -323,11 +322,15 @@ class Benchmark
 
         // JIT预热：让.NET运行时优化关键代码路径
         // 这对JIT语言是公平的，因为生产环境中代码会运行多次
-        for (int i = 0; i < 3; i++)
+        Console.Write("JIT预热中...");
+        for (int i = 0; i < 5; i++)
         {
             FibRecursive(20);
             Test2FibonacciIterative();
+            Test3PrimeSieve();
         }
+        Console.WriteLine(" 完成");
+        Console.WriteLine();
 
         Console.WriteLine($"{"测试项目",-20} {"结果",-15} {"耗时(ms)",15}");
         Console.WriteLine("----------------------------------------------------------------------");

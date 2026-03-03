@@ -231,10 +231,14 @@ public class Benchmark {
         
         // JIT预热：让JVM优化关键代码路径
         // 这对JIT语言是公平的，因为生产环境中代码会运行多次
-        for (int i = 0; i < 3; i++) {
+        System.out.print("JIT预热中...");
+        for (int i = 0; i < 5; i++) {
             fibRecursive(20);
             test2FibonacciIterative();
+            test3PrimeSieve();
         }
+        System.out.println(" 完成");
+        System.out.println();
         
         System.out.printf("%-20s %-15s %15s%n", "测试项目", "结果", "耗时(ms)");
         System.out.println("----------------------------------------------------------------------");
