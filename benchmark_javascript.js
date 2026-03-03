@@ -1,6 +1,17 @@
 const fs = require('fs');
 const { performance } = require('perf_hooks');
 
+// 简单的随机数生成器（LCG）- 全局定义，避免重复
+class SeededRandom {
+    constructor(seed) {
+        this.seed = seed;
+    }
+    next() {
+        this.seed = (this.seed * 9301 + 49297) % 233280;
+        return this.seed / 233280;
+    }
+}
+
 // 测试1：斐波那契数列（递归）
 function fibRecursive(n) {
     if (n <= 1) return n;
@@ -37,22 +48,16 @@ function test3PrimeSieve() {
         }
     }
     
-    return isPrime.filter(x => x).length;
+    // 手动计数，避免filter创建新数组
+    let count = 0;
+    for (let i = 0; i <= limit; i++) {
+        if (isPrime[i]) count++;
+    }
+    return count;
 }
 
 // 测试4：快速排序
 function test4Sorting() {
-    // 使用固定种子的随机数生成器
-    class SeededRandom {
-        constructor(seed) {
-            this.seed = seed;
-        }
-        next() {
-            this.seed = (this.seed * 9301 + 49297) % 233280;
-            return this.seed / 233280;
-        }
-    }
-    
     const rng = new SeededRandom(42);
     const arr = Array.from({length: 2000000}, () => Math.floor(rng.next() * 1000001));
     
@@ -80,20 +85,11 @@ function test6HashTable() {
     }
     
     // 查询
-    class SeededRandom {
-        constructor(seed) {
-            this.seed = seed;
-        }
-        next() {
-            this.seed = (this.seed * 9301 + 49297) % 233280;
-            return this.seed / 233280;
-        }
-    }
-    
     const rng = new SeededRandom(42);
     let foundCount = 0;
     for (let i = 0; i < 1000000; i++) {
-        const key = `key_${Math.floor(rng.next() * 1000001)}`;
+        const keyNum = Math.floor(rng.next() * 1000001);
+        const key = `key_${keyNum}`;
         if (hashMap.has(key)) {
             foundCount++;
         }
@@ -106,16 +102,22 @@ function test6HashTable() {
 function test7FileIO() {
     const filename = 'test_file_javascript.txt';
     
-    // 写入
-    const lines = [];
-    for (let i = 0; i < 2000000; i++) {
-        lines.push(`Line ${i}: This is a test line.`);
+    // 写入 - 批量构建字符串
+    const chunks = [];
+    const chunkSize = 10000;
+    for (let i = 0; i < 2000000; i += chunkSize) {
+        const lines = [];
+        const end = Math.min(i + chunkSize, 2000000);
+        for (let j = i; j < end; j++) {
+            lines.push(`Line ${j}: This is a test line.`);
+        }
+        chunks.push(lines.join('\n'));
     }
-    fs.writeFileSync(filename, lines.join('\n') + '\n');
+    fs.writeFileSync(filename, chunks.join('\n') + '\n');
     
     // 读取
-    const content = fs.readFileSync(filename, 'utf-8');
-    const lineCount = content.split('\n').filter(line => line.length > 0).length;
+    const fileContent = fs.readFileSync(filename, 'utf-8');
+    const lineCount = fileContent.split('\n').filter(line => line.length > 0).length;
     
     // 清理
     fs.unlinkSync(filename);
@@ -137,16 +139,6 @@ function test8MemoryAllocation() {
     }
     
     // 随机访问
-    class SeededRandom {
-        constructor(seed) {
-            this.seed = seed;
-        }
-        next() {
-            this.seed = (this.seed * 9301 + 49297) % 233280;
-            return this.seed / 233280;
-        }
-    }
-    
     const rng = new SeededRandom(42);
     let total = 0;
     for (let i = 0; i < 1000000; i++) {
@@ -162,16 +154,6 @@ function test9MatrixMultiplication() {
     const size = 400;
     
     // 初始化矩阵
-    class SeededRandom {
-        constructor(seed) {
-            this.seed = seed;
-        }
-        next() {
-            this.seed = (this.seed * 9301 + 49297) % 233280;
-            return this.seed / 233280;
-        }
-    }
-    
     const rng = new SeededRandom(42);
     const A = Array.from({length: size}, () => Array.from({length: size}, () => rng.next()));
     const B = Array.from({length: size}, () => Array.from({length: size}, () => rng.next()));
@@ -224,6 +206,16 @@ function main() {
     console.log('======================================================================');
     console.log(`Node.js ${version} 性能测试`);
     console.log('======================================================================');
+    console.log();
+    
+    // V8 JIT预热：让V8引擎优化关键代码路径
+    process.stdout.write('V8 JIT预热中...');
+    for (let i = 0; i < 5; i++) {
+        fibRecursive(20);
+        test2FibonacciIterative();
+        test3PrimeSieve();
+    }
+    console.log(' 完成');
     console.log();
     
     console.log(`${'测试项目'.padEnd(20)} ${'结果'.padEnd(15)} ${'耗时(ms)'.padStart(15)}`);
