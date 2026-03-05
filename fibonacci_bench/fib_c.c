@@ -13,7 +13,7 @@ int main() {
     double elapsed_ms = ((double)(end - start)) / CLOCKS_PER_SEC * 1000.0;
     
     printf("Result: %lld\n", result);
-    printf("Time: %.2f ms\n", elapsed_ms);
+    printf("C: %.2f ms\n", elapsed_ms);
     
     return 0;
 }

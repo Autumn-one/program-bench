@@ -10,4 +10,4 @@ local result = fib(41)
 local elapsed_ms = (os.clock() - start) * 1000
 
 print(string.format("Result: %d", result))
-print(string.format("Time: %.2f ms", elapsed_ms))
+print(string.format("Lua: %.2f ms", elapsed_ms))

@@ -27,6 +27,24 @@ rustc -O fib_rust.rs
 ./fib_rust
 ```
 
+### Zig
+```bash
+zig build-exe fib_zig.zig -O ReleaseFast
+./fib_zig
+```
+
+### V
+```bash
+v -prod fib_v.v
+./fib_v
+```
+
+### D
+```bash
+dmd -O -release -of=fib_d fib_d.d
+./fib_d
+```
+
 ### Go
 ```bash
 go run fib_go.go
@@ -80,10 +98,51 @@ nim c -d:release fib_nim.nim
 ./fib_nim
 ```
 
+### Cangjie (仓颉)
+```bash
+cjc fib_cangjie.cj
+./fib_cangjie
+```
+
+### AutoHotkey v2
+```bash
+AutoHotkey64.exe fib_ahk2.ahk
+```
+注意：AutoHotkey会弹出消息框显示结果
+
+### Racket
+```bash
+racket fib_racket.rkt
+```
+或编译后运行：
+```bash
+raco exe fib_racket.rkt
+./fib_racket
+```
+
+### SBCL (Common Lisp)
+快速测试（脚本模式）：
+```bash
+sbcl --script fib_sbcl.lisp
+```
+
+最佳性能（编译成可执行文件）：
+```bash
+sbcl --load fib_sbcl.lisp --eval "(sb-ext:save-lisp-and-die \"fib_sbcl\" :toplevel #'main :executable t)"
+./fib_sbcl
+```
+注意：编译后的可执行文件约 30-40MB（包含完整的 SBCL 运行时）
+
 ## 输出格式
 
 每个程序输出：
 ```
 Result: 165580141
-Time: XXX.XX ms
+语言名称: XXX.XX ms
+```
+
+例如：
+```
+Result: 165580141
+C: 245.32 ms
 ```

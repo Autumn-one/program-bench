@@ -13,5 +13,5 @@ fn main() {
     let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
     
     println!("Result: {}", result);
-    println!("Time: {:.2} ms", elapsed_ms);
+    println!("Rust: {:.2} ms", elapsed_ms);
 }

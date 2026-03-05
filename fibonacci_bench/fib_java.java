@@ -11,6 +11,6 @@ public class fib_java {
         double elapsedMs = (end - start) / 1_000_000.0;
         
         System.out.println("Result: " + result);
-        System.out.printf("Time: %.2f ms\n", elapsedMs);
+        System.out.printf("Java: %.2f ms\n", elapsedMs);
     }
 }

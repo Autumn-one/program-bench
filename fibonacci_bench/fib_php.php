@@ -10,4 +10,4 @@ $result = fib(41);
 $elapsed_ms = (microtime(true) - $start) * 1000;
 
 echo "Result: $result\n";
-echo "Time: " . number_format($elapsed_ms, 2) . " ms\n";
+echo "PHP: " . number_format($elapsed_ms, 2) . " ms\n";

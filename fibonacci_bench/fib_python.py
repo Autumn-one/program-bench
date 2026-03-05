@@ -12,4 +12,4 @@ if __name__ == "__main__":
     elapsed_ms = (time.perf_counter() - start) * 1000
     
     print(f"Result: {result}")
-    print(f"Time: {elapsed_ms:.2f} ms")
+    print(f"Python: {elapsed_ms:.2f} ms")

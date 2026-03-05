@@ -8,4 +8,4 @@ const result = fib(41);
 const elapsedMs = performance.now() - start;
 
 console.log(`Result: ${result}`);
-console.log(`Time: ${elapsedMs.toFixed(2)} ms`);
+console.log(`JavaScript: ${elapsedMs.toFixed(2)} ms`);

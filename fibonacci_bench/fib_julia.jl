@@ -10,4 +10,4 @@ result = fib(41)
 elapsed_ms = (time() - start) * 1000
 
 println("Result: $result")
-println("Time: $(round(elapsed_ms, digits=2)) ms")
+println("Julia: $(round(elapsed_ms, digits=2)) ms")

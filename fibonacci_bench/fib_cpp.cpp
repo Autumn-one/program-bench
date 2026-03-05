@@ -16,7 +16,7 @@ int main() {
     double elapsed_ms = duration<double, milli>(end - start).count();
     
     cout << "Result: " << result << endl;
-    cout << "Time: " << elapsed_ms << " ms" << endl;
+    cout << "C++: " << elapsed_ms << " ms" << endl;
     
     return 0;
 }

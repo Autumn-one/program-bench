@@ -17,6 +17,6 @@ class FibCSharp
         double elapsedMs = sw.Elapsed.TotalMilliseconds;
         
         Console.WriteLine($"Result: {result}");
-        Console.WriteLine($"Time: {elapsedMs:F2} ms");
+        Console.WriteLine($"C#: {elapsedMs:F2} ms");
     }
 }

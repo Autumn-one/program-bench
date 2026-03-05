@@ -18,5 +18,5 @@ func main() {
 	elapsed := time.Since(start).Milliseconds()
 	
 	fmt.Printf("Result: %d\n", result)
-	fmt.Printf("Time: %d ms\n", elapsed)
+	fmt.Printf("Go: %d ms\n", elapsed)
 }

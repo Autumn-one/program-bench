@@ -10,4 +10,4 @@ result = fib(41)
 elapsed_ms = (Time.now - start) * 1000
 
 puts "Result: #{result}"
-puts "Time: #{elapsed_ms.round(2)} ms"
+puts "Ruby: #{elapsed_ms.round(2)} ms"
